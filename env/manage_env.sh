@@ -87,6 +87,18 @@ status_all() {
     done < <(get_env_dirs)
 }
 
+# 初始化网络
+init_network() {
+    local network_name="tough-development-domain"
+
+    echo "Creating network: $network_name"
+    docker network create \
+        --driver bridge \
+        --subnet 172.20.0.0/16 \
+        --gateway 172.20.0.1 \
+        "$network_name"
+}
+
 # 显示帮助
 show_help() {
     cat << EOF
@@ -96,6 +108,7 @@ Commands:
   start [env]     Start all environments or specific one
   stop [env]      Stop all environments or specific one
   status [env]    Show status of all environments or specific one
+  initialize-network Create fixed tough-development-domain network
   help            Show this help message
 
 Environments:
@@ -107,6 +120,7 @@ Examples:
   $0 start          # Start all environments
   $0 stop iotdb     # Stop only iotdb environment
   $0 status         # Show status of all environments
+  $0 initialize-network  # Create tough-development-domain network
 EOF
 }
 
@@ -132,6 +146,9 @@ case "${1:-help}" in
         else
             status_all
         fi
+        ;;
+    initialize-network)
+        init_network
         ;;
     help|--help|-h)
         show_help
