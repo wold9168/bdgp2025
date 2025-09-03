@@ -25,6 +25,10 @@ services:
     networks:
       tough-development-domain:
         ipv4_address: 172.20.0.2
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
 networks:
   tough-development-domain:
