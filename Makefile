@@ -9,7 +9,7 @@ CMD_SERVER_DIR=cmd/server
 # Default target
 all: build
 
-# Build both binaries
+# Build all binaries
 build: $(BINARY_CLI) $(BINARY_SERVER)
 
 # Build CLI binary
@@ -36,15 +36,21 @@ run-cli: $(BINARY_CLI)
 run-server: $(BINARY_SERVER)
 	./$(BINARY_SERVER)
 
+# Test the utils package
+.PHONY: test
+test:
+	cd test && go test -v
+
 # Help
 help:
 	@echo "Available targets:"
 	@echo "  all          - Build both binaries (default)"
-	@echo "  build        - Build both binaries"
+	@echo "  build        - Build all binaries"
 	@echo "  $(BINARY_CLI)    - Build CLI binary"
 	@echo "  $(BINARY_SERVER) - Build Server binary"
 	@echo "  deps         - Install dependencies"
 	@echo "  clean        - Remove build artifacts"
 	@echo "  run-cli      - Run CLI binary"
 	@echo "  run-server   - Run Server binary"
+	@echo "  test         - Run tests"
 	@echo "  help         - Show this help message"
