@@ -1,6 +1,10 @@
 env/iotdb/**
 !env/iotdb/docker-compose.yml
 
+# binary
+cli
+server
+
 # Rule from github/gitignore
 # Go + Cpp + Java
 *.a
