@@ -28,7 +28,6 @@ hs_err_pid*
 *.lib
 *.lo
 *.log
-*.mod
 .mtj.tmp/
 *.nar
 *.o
