@@ -15,7 +15,7 @@ func Main() {
 	// Define the import-csv flag
 	importCSV := flag.String("i", "", "Import data from CSV file (shorthand)")
 	importCSVLong := flag.String("import-csv", "", "Import data from CSV file")
-	deviceId := flag.String("device-id", "root.ln.dev9", "Device ID for IoTDB")
+	deviceId := flag.String("device-id", "root.example.exampledev", "Device ID for IoTDB")
 
 	flag.Parse()
 
