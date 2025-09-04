@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bdgp2025/src/db_interface"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -9,6 +10,28 @@ import (
 
 	"github.com/apache/iotdb-client-go/v2/client"
 )
+
+func ReadinCSVOneByOne(args ...interface{}) error {
+	var data CSVRecord = args[0].(CSVRecord)
+	var session client.Session = args[1].(client.Session)
+	var deviceId string = args[2].(string)
+
+	// Create dataMatrix from the CSVRecord data
+	dataMatrix := [][]interface{}{
+		{
+			data.EngineRPM,
+			data.LubOilPressure,
+			data.FuelPressure,
+			data.CoolantPressure,
+			data.LubOilTemp,
+			data.CoolantTemp,
+			data.EngineCondition,
+		},
+	}
+
+	db_interface.InsertRecordsOfOneDevice(session, deviceId, dataMatrix)
+	return nil
+}
 
 // CSVRecord represents a single row from the CSV file
 type CSVRecord struct {

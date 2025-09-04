@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bdgp2025/src/handler"
 	"bdgp2025/src/utils"
 	"flag"
 	"log"
@@ -61,5 +60,5 @@ func Main() {
 // This function should be implemented according to specific requirements
 func handleCSVImport(csvFile string, session client.Session, deviceId string) {
 	log.Printf("Importing data from CSV file: %s", csvFile)
-	utils.ImportCSVFile(csvFile, handler.ReadinCSVOneByOne, session, deviceId)
+	utils.ImportCSVFile(csvFile, utils.ReadinCSVOneByOne, session, deviceId)
 }
