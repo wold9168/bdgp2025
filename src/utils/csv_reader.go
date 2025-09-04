@@ -241,7 +241,7 @@ func ReadCSVFileFirst5Rows(filePath string) ([]CSVRecord, error) {
 func PrintCSVRecords(records []CSVRecord) {
 	fmt.Println("Engine RPM\tLub Oil Pressure\tFuel Pressure\tCoolant Pressure\tLub Oil Temp\tCoolant Temp\tEngine Condition")
 	for _, record := range records {
-		fmt.Printf("%d\t\t%.2f\t\t\t%.2f\t\t%.2f\t\t\t%.2f\t\t%.2f\t\t%t\n",
+		fmt.Printf("%d\t\t%.2f\t\t\t%.2f\t\t%.2f\t\t\t%.2f\t\t%.2f\t\t%d\n",
 			record.EngineRPM,
 			record.LubOilPressure,
 			record.FuelPressure,

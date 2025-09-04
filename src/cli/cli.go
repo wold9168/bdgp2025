@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bdgp2025/src/db_interface"
 	"bdgp2025/src/utils"
 	"flag"
 	"log"
@@ -15,6 +16,7 @@ func Main() {
 	importCSV := flag.String("i", "", "Import data from CSV file (shorthand)")
 	importCSVLong := flag.String("import-csv", "", "Import data from CSV file")
 	deviceId := flag.String("device-id", "root.example.exampledev", "Device ID for IoTDB")
+	calculateStats := flag.Bool("calculate-statistics", false, "Calculate statistics for the device")
 
 	flag.Parse()
 
@@ -33,6 +35,8 @@ func Main() {
 		UserName: iotdbConfig.User,
 		Password: iotdbConfig.Password,
 	}
+	timeout := iotdbConfig.Timeout
+
 	session := client.NewSession(config)
 	if err := session.Open(false, 0); err != nil {
 		log.Fatal(err)
@@ -53,6 +57,9 @@ func Main() {
 		}
 
 		handleCSVImport(csvFile, session, *deviceId)
+	} else if *calculateStats {
+		// Calculate statistics if the flag is set
+		handleCalculateStatistics(session, *deviceId, timeout)
 	}
 }
 
@@ -61,4 +68,25 @@ func Main() {
 func handleCSVImport(csvFile string, session client.Session, deviceId string) {
 	log.Printf("Importing data from CSV file: %s", csvFile)
 	utils.ImportCSVFile(csvFile, utils.ReadinCSVOneByOne, session, deviceId)
+}
+
+func handleCalculateStatistics(session client.Session, deviceId string, timeout int64) {
+	log.Printf("Calculate statistics for the device, deviceId: %s", deviceId)
+	var sql string = "select * from " + deviceId
+	if ds, err := session.ExecuteQueryStatement(sql, &timeout); err == nil {
+		sumResults, cnt := db_interface.GetSums(ds)
+		db_interface.PrintSums(ds, sumResults)
+		averageResults := db_interface.GetAverageFromSumResults(sumResults, cnt)
+		db_interface.PrintAverages(ds, averageResults)
+		ds.Close()
+	} else {
+		log.Fatal(err)
+	}
+	if ds, err := session.ExecuteQueryStatement(sql, &timeout); err == nil {
+		varianceResults := db_interface.GetVariance(ds)
+		db_interface.PrintVariances(ds, varianceResults)
+		ds.Close()
+	} else {
+		log.Fatal(err)
+	}
 }
