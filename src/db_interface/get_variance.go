@@ -50,31 +50,84 @@ func GetVariance(sds *client.SessionDataSet) VarianceResults {
 		engineConditionSquaredSum int64
 	)
 
+	// Get column mapping to handle dynamic column order
+	columnMapping := GetSimpleColumnMapping(sds)
+
 	// Iterate through the dataset and calculate sums
 	for next, err := sds.Next(); err == nil && next; next, err = sds.Next() {
-		engineRpm, _ := sds.GetLongByIndex(2)
-		lubOilPressure, _ := sds.GetDoubleByIndex(3)
-		fuelPressure, _ := sds.GetDoubleByIndex(4)
-		coolantPressure, _ := sds.GetDoubleByIndex(5)
-		lubOilTemp, _ := sds.GetDoubleByIndex(6)
-		coolantTemp, _ := sds.GetDoubleByIndex(7)
-		engineCondition, _ := sds.GetLongByIndex(8)
+		// Get values using GetObjectByIndex to handle actual data types
+		if engineRpmInfo, exists := columnMapping["engine_rpm"]; exists {
+			if value, err := sds.GetObjectByIndex(engineRpmInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					intValue := int64(floatValue)
+					engineRpmSum += intValue
+					engineRpmSquaredSum += intValue * intValue
+				} else if intValue, ok := value.(int64); ok {
+					engineRpmSum += intValue
+					engineRpmSquaredSum += intValue * intValue
+				}
+			}
+		}
+
+		if lubOilPressureInfo, exists := columnMapping["lub_oil_pressure"]; exists {
+			if value, err := sds.GetObjectByIndex(lubOilPressureInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					lubOilPressureSum += floatValue
+					lubOilPressureSquaredSum += floatValue * floatValue
+				}
+			}
+		}
+
+		if fuelPressureInfo, exists := columnMapping["fuel_pressure"]; exists {
+			if value, err := sds.GetObjectByIndex(fuelPressureInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					fuelPressureSum += floatValue
+					fuelPressureSquaredSum += floatValue * floatValue
+				}
+			}
+		}
+
+		if coolantPressureInfo, exists := columnMapping["coolant_pressure"]; exists {
+			if value, err := sds.GetObjectByIndex(coolantPressureInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					coolantPressureSum += floatValue
+					coolantPressureSquaredSum += floatValue * floatValue
+				}
+			}
+		}
+
+		if lubOilTempInfo, exists := columnMapping["luboil_temp"]; exists {
+			if value, err := sds.GetObjectByIndex(lubOilTempInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					lubOilTempSum += floatValue
+					lubOilTempSquaredSum += floatValue * floatValue
+				}
+			}
+		}
+
+		if coolantTempInfo, exists := columnMapping["coolant_temp"]; exists {
+			if value, err := sds.GetObjectByIndex(coolantTempInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					coolantTempSum += floatValue
+					coolantTempSquaredSum += floatValue * floatValue
+				}
+			}
+		}
+
+		if engineConditionInfo, exists := columnMapping["engine_condition"]; exists {
+			if value, err := sds.GetObjectByIndex(engineConditionInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					intValue := int64(floatValue)
+					engineConditionSum += intValue
+					engineConditionSquaredSum += intValue * intValue
+				} else if intValue, ok := value.(int64); ok {
+					engineConditionSum += intValue
+					engineConditionSquaredSum += intValue * intValue
+				}
+			}
+		}
 
 		count++
-		engineRpmSum += engineRpm
-		engineRpmSquaredSum += engineRpm * engineRpm
-		lubOilPressureSum += lubOilPressure
-		lubOilPressureSquaredSum += lubOilPressure * lubOilPressure
-		fuelPressureSum += fuelPressure
-		fuelPressureSquaredSum += fuelPressure * fuelPressure
-		coolantPressureSum += coolantPressure
-		coolantPressureSquaredSum += coolantPressure * coolantPressure
-		lubOilTempSum += lubOilTemp
-		lubOilTempSquaredSum += lubOilTemp * lubOilTemp
-		coolantTempSum += coolantTemp
-		coolantTempSquaredSum += coolantTemp * coolantTemp
-		engineConditionSum += engineCondition
-		engineConditionSquaredSum += engineCondition * engineCondition
 	}
 
 	// Return empty results if count is insufficient
@@ -107,24 +160,73 @@ func GetVarianceFromAverage(sds *client.SessionDataSet, avg AverageResults) Vari
 		engineConditionVariance float64
 	)
 
+	// Get column mapping to handle dynamic column order
+	columnMapping := GetSimpleColumnMapping(sds)
+
 	// Iterate through the dataset and calculate variances based on averages
 	for next, err := sds.Next(); err == nil && next; next, err = sds.Next() {
-		engineRpm, _ := sds.GetLongByIndex(2)
-		lubOilPressure, _ := sds.GetDoubleByIndex(3)
-		fuelPressure, _ := sds.GetDoubleByIndex(4)
-		coolantPressure, _ := sds.GetDoubleByIndex(5)
-		lubOilTemp, _ := sds.GetDoubleByIndex(6)
-		coolantTemp, _ := sds.GetDoubleByIndex(7)
-		engineCondition, _ := sds.GetLongByIndex(8)
+		// Get values using GetObjectByIndex to handle actual data types
+		if engineRpmInfo, exists := columnMapping["engine_rpm"]; exists {
+			if value, err := sds.GetObjectByIndex(engineRpmInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					engineRpmVariance += math.Pow(float64(int64(floatValue))-float64(avg.EngineRpmAverage), 2)
+				} else if intValue, ok := value.(int64); ok {
+					engineRpmVariance += math.Pow(float64(intValue)-float64(avg.EngineRpmAverage), 2)
+				}
+			}
+		}
+
+		if lubOilPressureInfo, exists := columnMapping["lub_oil_pressure"]; exists {
+			if value, err := sds.GetObjectByIndex(lubOilPressureInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					lubOilPressureVariance += math.Pow(floatValue-avg.LubOilPressureAverage, 2)
+				}
+			}
+		}
+
+		if fuelPressureInfo, exists := columnMapping["fuel_pressure"]; exists {
+			if value, err := sds.GetObjectByIndex(fuelPressureInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					fuelPressureVariance += math.Pow(floatValue-avg.FuelPressureAverage, 2)
+				}
+			}
+		}
+
+		if coolantPressureInfo, exists := columnMapping["coolant_pressure"]; exists {
+			if value, err := sds.GetObjectByIndex(coolantPressureInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					coolantPressureVariance += math.Pow(floatValue-avg.CoolantPressureAverage, 2)
+				}
+			}
+		}
+
+		if lubOilTempInfo, exists := columnMapping["luboil_temp"]; exists {
+			if value, err := sds.GetObjectByIndex(lubOilTempInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					lubOilTempVariance += math.Pow(floatValue-avg.LubOilTempAverage, 2)
+				}
+			}
+		}
+
+		if coolantTempInfo, exists := columnMapping["coolant_temp"]; exists {
+			if value, err := sds.GetObjectByIndex(coolantTempInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					coolantTempVariance += math.Pow(floatValue-avg.CoolantTempAverage, 2)
+				}
+			}
+		}
+
+		if engineConditionInfo, exists := columnMapping["engine_condition"]; exists {
+			if value, err := sds.GetObjectByIndex(engineConditionInfo.Index); err == nil {
+				if floatValue, ok := value.(float64); ok {
+					engineConditionVariance += math.Pow(float64(int64(floatValue))-float64(avg.EngineConditionAverage), 2)
+				} else if intValue, ok := value.(int64); ok {
+					engineConditionVariance += math.Pow(float64(intValue)-float64(avg.EngineConditionAverage), 2)
+				}
+			}
+		}
 
 		count++
-		engineRpmVariance += math.Pow(float64(engineRpm)-float64(avg.EngineRpmAverage), 2)
-		lubOilPressureVariance += math.Pow(lubOilPressure-avg.LubOilPressureAverage, 2)
-		fuelPressureVariance += math.Pow(fuelPressure-avg.FuelPressureAverage, 2)
-		coolantPressureVariance += math.Pow(coolantPressure-avg.CoolantPressureAverage, 2)
-		lubOilTempVariance += math.Pow(lubOilTemp-avg.LubOilTempAverage, 2)
-		coolantTempVariance += math.Pow(coolantTemp-avg.CoolantTempAverage, 2)
-		engineConditionVariance += math.Pow(float64(engineCondition)-float64(avg.EngineConditionAverage), 2)
 	}
 
 	// Return empty results if count is insufficient
