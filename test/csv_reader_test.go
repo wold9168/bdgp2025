@@ -20,13 +20,13 @@ func TestReadCSVFile(t *testing.T) {
 
 	// Check that the first record has the expected values from the sample data
 	expectedFirstRecord := utils.CSVRecord{
-		EngineRPM:       "700",
-		LubOilPressure:  "2.493591821",
-		FuelPressure:    "11.79092738",
-		CoolantPressure: "3.178980794",
-		LubOilTemp:      "84.14416293",
-		CoolantTemp:     "81.6321865",
-		EngineCondition: "1",
+		EngineRPM:       int64(700),
+		LubOilPressure:  float64(2.493591821),
+		FuelPressure:    float64(11.79092738),
+		CoolantPressure: float64(3.178980794),
+		LubOilTemp:      float64(84.14416293),
+		CoolantTemp:     float64(81.6321865),
+		EngineCondition: int64(1),
 	}
 
 	firstRecord := records[0]
@@ -39,13 +39,13 @@ func TestPrintCSVRecords(t *testing.T) {
 	// This is a simple test to ensure the function doesn't panic
 	records := []utils.CSVRecord{
 		{
-			EngineRPM:       "700",
-			LubOilPressure:  "2.493591821",
-			FuelPressure:    "11.79092738",
-			CoolantPressure: "3.178980794",
-			LubOilTemp:      "84.14416293",
-			CoolantTemp:     "81.6321865",
-			EngineCondition: "1",
+			EngineRPM:       int64(700),
+			LubOilPressure:  float64(2.493591821),
+			FuelPressure:    float64(11.79092738),
+			CoolantPressure: float64(3.178980794),
+			LubOilTemp:      float64(84.14416293),
+			CoolantTemp:     float64(81.6321865),
+			EngineCondition: int64(1),
 		},
 	}
 

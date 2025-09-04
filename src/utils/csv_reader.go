@@ -5,23 +5,29 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
+
+	"github.com/apache/iotdb-client-go/v2/client"
 )
 
 // CSVRecord represents a single row from the CSV file
 type CSVRecord struct {
-	EngineRPM       string
-	LubOilPressure  string
-	FuelPressure    string
-	CoolantPressure string
-	LubOilTemp      string
-	CoolantTemp     string
-	EngineCondition string
+	EngineRPM       int64
+	LubOilPressure  float64
+	FuelPressure    float64
+	CoolantPressure float64
+	LubOilTemp      float64
+	CoolantTemp     float64
+	EngineCondition int64
 }
 
-// ProcessCSVFile reads the entire CSV file and applies the provided function to each record
+// ImportCSVFile reads the entire CSV file and applies the provided function to each record
 // The file is processed row by row to handle large files efficiently
 // TODO: processFunc should be implemented
-func ProcessCSVFile(filePath string, processFunc func(CSVRecord) error) error {
+func ImportCSVFile(filePath string, processFunc func(...interface{}) error, args ...interface{}) error {
+	var session client.Session = args[0].(client.Session)
+	var deviceId string = args[1].(string)
+
 	// Open the file
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -59,19 +65,55 @@ func ProcessCSVFile(filePath string, processFunc func(CSVRecord) error) error {
 			return fmt.Errorf("row has incorrect number of columns")
 		}
 
+		// Convert string values to appropriate types
+		engineRPMInt, err := strconv.ParseInt(row[0], 0, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse EngineRPM: %v", err)
+		}
+
+		lubOilPressure, err := strconv.ParseFloat(row[1], 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse LubOilPressure: %v", err)
+		}
+
+		fuelPressure, err := strconv.ParseFloat(row[2], 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse FuelPressure: %v", err)
+		}
+
+		coolantPressure, err := strconv.ParseFloat(row[3], 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse CoolantPressure: %v", err)
+		}
+
+		lubOilTemp, err := strconv.ParseFloat(row[4], 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse LubOilTemp: %v", err)
+		}
+
+		coolantTemp, err := strconv.ParseFloat(row[5], 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse CoolantTemp: %v", err)
+		}
+
+		engineConditionBool, err := strconv.ParseInt(row[6], 0, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse EngineCondition: %v", err)
+		}
+
 		// Create a CSVRecord from the row data
 		record := CSVRecord{
-			EngineRPM:       row[0],
-			LubOilPressure:  row[1],
-			FuelPressure:    row[2],
-			CoolantPressure: row[3],
-			LubOilTemp:      row[4],
-			CoolantTemp:     row[5],
-			EngineCondition: row[6],
+			EngineRPM:       engineRPMInt,
+			LubOilPressure:  lubOilPressure,
+			FuelPressure:    fuelPressure,
+			CoolantPressure: coolantPressure,
+			LubOilTemp:      lubOilTemp,
+			CoolantTemp:     coolantTemp,
+			EngineCondition: engineConditionBool,
 		}
 
 		// Apply the provided function to the record
-		if err := processFunc(record); err != nil {
+		if err := processFunc(record, session, deviceId); err != nil {
 			return fmt.Errorf("error processing record: %v", err)
 		}
 	}
@@ -119,15 +161,51 @@ func ReadCSVFileFirst5Rows(filePath string) ([]CSVRecord, error) {
 			return nil, fmt.Errorf("row %d has incorrect number of columns", i+1)
 		}
 
+		// Convert string values to appropriate types
+		engineRPMInt, err := strconv.ParseInt(row[0], 0, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse EngineRPM: %v", err)
+		}
+
+		lubOilPressure, err := strconv.ParseFloat(row[1], 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse LubOilPressure: %v", err)
+		}
+
+		fuelPressure, err := strconv.ParseFloat(row[2], 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse FuelPressure: %v", err)
+		}
+
+		coolantPressure, err := strconv.ParseFloat(row[3], 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse CoolantPressure: %v", err)
+		}
+
+		lubOilTemp, err := strconv.ParseFloat(row[4], 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse LubOilTemp: %v", err)
+		}
+
+		coolantTemp, err := strconv.ParseFloat(row[5], 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse CoolantTemp: %v", err)
+		}
+
+		engineConditionBool, err := strconv.ParseInt(row[6], 0, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse EngineCondition: %v", err)
+		}
+
 		// Create a CSVRecord from the row data
 		record := CSVRecord{
-			EngineRPM:       row[0],
-			LubOilPressure:  row[1],
-			FuelPressure:    row[2],
-			CoolantPressure: row[3],
-			LubOilTemp:      row[4],
-			CoolantTemp:     row[5],
-			EngineCondition: row[6],
+			EngineRPM:       engineRPMInt,
+			LubOilPressure:  lubOilPressure,
+			FuelPressure:    fuelPressure,
+			CoolantPressure: coolantPressure,
+			LubOilTemp:      lubOilTemp,
+			CoolantTemp:     coolantTemp,
+			EngineCondition: engineConditionBool,
 		}
 
 		records = append(records, record)
@@ -141,7 +219,7 @@ func ReadCSVFileFirst5Rows(filePath string) ([]CSVRecord, error) {
 func PrintCSVRecords(records []CSVRecord) {
 	fmt.Println("Engine RPM\tLub Oil Pressure\tFuel Pressure\tCoolant Pressure\tLub Oil Temp\tCoolant Temp\tEngine Condition")
 	for _, record := range records {
-		fmt.Printf("%s\t\t%s\t\t\t%s\t\t%s\t\t\t%s\t\t%s\t\t%s\n",
+		fmt.Printf("%d\t\t%.2f\t\t\t%.2f\t\t%.2f\t\t\t%.2f\t\t%.2f\t\t%t\n",
 			record.EngineRPM,
 			record.LubOilPressure,
 			record.FuelPressure,
