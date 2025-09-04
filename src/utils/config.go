@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 // IoTDBConfig represents the configuration for IoTDB connection
@@ -13,6 +14,7 @@ type IoTDBConfig struct {
 	Port     string `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
+	Timeout  int    `json:"timeout"`
 }
 
 // Source indicates where a configuration value came from
@@ -36,6 +38,7 @@ type IoTDBConfigWithSources struct {
 	Port     ConfigWithSource
 	User     ConfigWithSource
 	Password ConfigWithSource
+	Timeout  ConfigWithSource
 }
 
 // LoadIoTDBConfig loads IoTDB configuration with proper precedence:
@@ -47,6 +50,7 @@ func LoadIoTDBConfig() (*IoTDBConfigWithSources, error) {
 		flagPort     string
 		flagUser     string
 		flagPassword string
+		flagTimeout  int
 		configFile   string
 		showConfig   bool
 	)
@@ -56,6 +60,7 @@ func LoadIoTDBConfig() (*IoTDBConfigWithSources, error) {
 	flag.StringVar(&flagPort, "port", "", "IoTDB port")
 	flag.StringVar(&flagUser, "user", "", "IoTDB user")
 	flag.StringVar(&flagPassword, "password", "", "IoTDB password")
+	flag.IntVar(&flagTimeout, "timeout", 0, "Timeout in milliseconds")
 	flag.StringVar(&configFile, "config", "config/iotdb.json", "Path to config file")
 	flag.BoolVar(&showConfig, "show-config", false, "Show configuration sources")
 
@@ -71,6 +76,7 @@ func LoadIoTDBConfig() (*IoTDBConfigWithSources, error) {
 			Port:     "6667",
 			User:     "root",
 			Password: "root",
+			Timeout:  1000,
 		}
 	}
 
@@ -113,6 +119,15 @@ func LoadIoTDBConfig() (*IoTDBConfigWithSources, error) {
 		configWithSources.Password = ConfigWithSource{Value: "root", Source: DefaultValue}
 	}
 
+	// Timeout
+	if flagTimeout > 0 {
+		configWithSources.Timeout = ConfigWithSource{Value: fmt.Sprintf("%d", flagTimeout), Source: FlagValue}
+	} else if fileConfig.Timeout > 0 {
+		configWithSources.Timeout = ConfigWithSource{Value: fmt.Sprintf("%d", fileConfig.Timeout), Source: FileValue}
+	} else {
+		configWithSources.Timeout = ConfigWithSource{Value: "1000", Source: DefaultValue}
+	}
+
 	// Show configuration sources if requested
 	if showConfig {
 		fmt.Println("Configuration sources:")
@@ -120,6 +135,7 @@ func LoadIoTDBConfig() (*IoTDBConfigWithSources, error) {
 		fmt.Printf("Port: %s (%s)\n", configWithSources.Port.Value, configWithSources.Port.Source)
 		fmt.Printf("User: %s (%s)\n", configWithSources.User.Value, configWithSources.User.Source)
 		fmt.Printf("Password: %s (%s)\n", configWithSources.Password.Value, configWithSources.Password.Source)
+		fmt.Printf("Timeout: %s (%s)\n", configWithSources.Timeout.Value, configWithSources.Timeout.Source)
 	}
 
 	return configWithSources, nil
@@ -127,11 +143,13 @@ func LoadIoTDBConfig() (*IoTDBConfigWithSources, error) {
 
 // ToIoTDBConfig converts IoTDBConfigWithSources to IoTDBConfig
 func (c *IoTDBConfigWithSources) ToIoTDBConfig() *IoTDBConfig {
+	timeout, _ := strconv.Atoi(c.Timeout.Value)
 	return &IoTDBConfig{
 		Host:     c.Host.Value,
 		Port:     c.Port.Value,
 		User:     c.User.Value,
 		Password: c.Password.Value,
+		Timeout:  timeout,
 	}
 }
 
