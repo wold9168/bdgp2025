@@ -8,7 +8,7 @@ import (
 
 func TestReadCSVFile(t *testing.T) {
 	// Test reading the engine_data.csv file
-	records, err := utils.ReadCSVFile("../data/engine_data.csv")
+	records, err := utils.ReadCSVFileFirst5Rows("../data/engine_data.csv")
 	if err != nil {
 		t.Fatalf("Failed to read CSV file: %v", err)
 	}
