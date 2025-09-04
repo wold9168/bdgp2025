@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/apache/iotdb-client-go/v2/client"
 )
@@ -15,7 +16,7 @@ func ReadinCSVOneByOne(args ...interface{}) error {
 	var data CSVRecord = args[0].(CSVRecord)
 	var session client.Session = args[1].(client.Session)
 	var deviceId string = args[2].(string)
-
+	var ts int64 = args[3].(int64)
 	// Create dataMatrix from the CSVRecord data
 	dataMatrix := [][]interface{}{
 		{
@@ -29,7 +30,7 @@ func ReadinCSVOneByOne(args ...interface{}) error {
 		},
 	}
 
-	db_interface.InsertRecordsOfOneDevice(session, deviceId, dataMatrix)
+	db_interface.InsertRecordsOfOneDevice(session, deviceId, dataMatrix, ts)
 	return nil
 }
 
@@ -73,6 +74,8 @@ func ImportCSVFile(filePath string, processFunc func(...interface{}) error, args
 	}
 
 	// Process each row
+	cnt := 0
+	var ts int64 = time.Now().UTC().UnixNano() / 1000000
 	for {
 		row, err := reader.Read()
 		if err == io.EOF {
@@ -135,11 +138,13 @@ func ImportCSVFile(filePath string, processFunc func(...interface{}) error, args
 		}
 
 		// Apply the provided function to the record
-		if err := processFunc(record, session, deviceId); err != nil {
+		ts++ // Avoid data overwriting
+		if err := processFunc(record, session, deviceId, ts); err != nil {
 			return fmt.Errorf("error processing record: %v", err)
 		}
+		cnt++
 	}
-
+	fmt.Println("Processed", cnt, "items.")
 	return nil
 }
 

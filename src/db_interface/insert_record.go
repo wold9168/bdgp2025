@@ -6,8 +6,10 @@ import (
 	"github.com/apache/iotdb-client-go/v2/client"
 )
 
-func InsertRecordsOfOneDevice(session client.Session, deviceId string, dataMatrix [][]interface{}) {
-	ts := time.Now().UTC().UnixNano() / 1000000
+func InsertRecordsOfOneDevice(session client.Session, deviceId string, dataMatrix [][]interface{}, ts int64) {
+	if ts == 0 {
+		ts = time.Now().UTC().UnixNano() / 1000000
+	}
 	var (
 		measurementsSlice = [][]string{
 			{"engine_rpm", "lub_oil_pressure", "fuel_pressure", "coolant_pressure", "luboil_temp", "coolant_temp", "engine_condition"},
