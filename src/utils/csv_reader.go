@@ -23,7 +23,6 @@ type CSVRecord struct {
 
 // ImportCSVFile reads the entire CSV file and applies the provided function to each record
 // The file is processed row by row to handle large files efficiently
-// TODO: processFunc should be implemented
 func ImportCSVFile(filePath string, processFunc func(...interface{}) error, args ...interface{}) error {
 	var session client.Session = args[0].(client.Session)
 	var deviceId string = args[1].(string)
