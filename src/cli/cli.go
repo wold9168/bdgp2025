@@ -78,7 +78,10 @@ func handleStatisticCalc(session client.Session, deviceId string, timeout int64)
 	}
 	v := reflect.ValueOf(result)
 	t := reflect.TypeOf(result)
-	columeNames, _, _ := db_interface.FetchMetadata(session, deviceId, timeout)
+	columeNames, _, err := db_interface.FetchMetadata(session, deviceId, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, columeName := range columeNames {
 		fmt.Printf("%s\t", columeName)
 	}
