@@ -30,6 +30,7 @@ deps:
 # Clean build artifacts
 clean:
 	rm -f $(BINARY_CLI) $(BINARY_SERVER)
+	rm -f *.html
 
 # Run CLI
 run-cli: $(BINARY_CLI)
