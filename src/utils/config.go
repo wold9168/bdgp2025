@@ -14,7 +14,7 @@ type IoTDBConfig struct {
 	Port     string `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
-	Timeout  int    `json:"timeout"`
+	Timeout  int64  `json:"timeout"`
 }
 
 // Source indicates where a configuration value came from
@@ -143,7 +143,7 @@ func LoadIoTDBConfig() (*IoTDBConfigWithSources, error) {
 
 // ToIoTDBConfig converts IoTDBConfigWithSources to IoTDBConfig
 func (c *IoTDBConfigWithSources) ToIoTDBConfig() *IoTDBConfig {
-	timeout, _ := strconv.Atoi(c.Timeout.Value)
+	timeout, _ := strconv.ParseInt(c.Timeout.Value, 0, 64)
 	return &IoTDBConfig{
 		Host:     c.Host.Value,
 		Port:     c.Port.Value,

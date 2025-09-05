@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"bdgp2025/src/db_interface"
 	"bdgp2025/src/utils"
 	"flag"
+	"fmt"
 	"log"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/apache/iotdb-client-go/v2/client"
@@ -15,6 +18,7 @@ func Main() {
 	importCSV := flag.String("i", "", "Import data from CSV file (shorthand)")
 	importCSVLong := flag.String("import-csv", "", "Import data from CSV file")
 	deviceId := flag.String("device-id", "root.example.exampledev", "Device ID for IoTDB")
+	statisticCalc := flag.Bool("stat", false, "Calculate statistics (shorthand)")
 
 	flag.Parse()
 
@@ -33,7 +37,7 @@ func Main() {
 		UserName: iotdbConfig.User,
 		Password: iotdbConfig.Password,
 	}
-	// timeout := iotdbConfig.Timeout
+	timeout := iotdbConfig.Timeout
 	session := client.NewSession(config)
 	if err := session.Open(false, 0); err != nil {
 		log.Fatal(err)
@@ -54,6 +58,9 @@ func Main() {
 		}
 
 		handleCSVImport(csvFile, session, *deviceId)
+	} else if *statisticCalc {
+		// Execute statistic calculation
+		handleStatisticCalc(session, *deviceId, timeout)
 	}
 }
 
@@ -64,13 +71,18 @@ func handleCSVImport(csvFile string, session client.Session, deviceId string) {
 	utils.ImportCSVFile(csvFile, utils.ReadinCSVOneByOne, session, deviceId)
 }
 
-func handleStatisticCalc(session client.Session, deviceId string) {
-	var timeout int64 = 1000
-	var sql string = "select * from " + deviceId
-	if ds, err := session.ExecuteQueryStatement(sql, &timeout); err == nil {
-
-		ds.Close()
-	} else {
+func handleStatisticCalc(session client.Session, deviceId string, timeout int64) {
+	result, err := db_interface.GetStatisticsResult(session, deviceId, timeout)
+	if err != nil {
 		log.Fatal(err)
+	}
+	v := reflect.ValueOf(result)
+	t := reflect.TypeOf(result)
+	columeNames, _, _ := db_interface.FetchMetadata(session, deviceId, timeout)
+	for _, columeName := range columeNames {
+		fmt.Printf("%s\t", columeName)
+	}
+	for i := 0; i < t.NumField(); i++ {
+		fmt.Printf("%s: %v\n", t.Field(i).Name, v.Field(i).Interface())
 	}
 }
