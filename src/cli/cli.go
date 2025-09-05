@@ -33,6 +33,7 @@ func Main() {
 		UserName: iotdbConfig.User,
 		Password: iotdbConfig.Password,
 	}
+	// timeout := iotdbConfig.Timeout
 	session := client.NewSession(config)
 	if err := session.Open(false, 0); err != nil {
 		log.Fatal(err)
@@ -61,4 +62,15 @@ func Main() {
 func handleCSVImport(csvFile string, session client.Session, deviceId string) {
 	log.Printf("Importing data from CSV file: %s", csvFile)
 	utils.ImportCSVFile(csvFile, utils.ReadinCSVOneByOne, session, deviceId)
+}
+
+func handleStatisticCalc(session client.Session, deviceId string) {
+	var timeout int64 = 1000
+	var sql string = "select * from " + deviceId
+	if ds, err := session.ExecuteQueryStatement(sql, &timeout); err == nil {
+
+		ds.Close()
+	} else {
+		log.Fatal(err)
+	}
 }
