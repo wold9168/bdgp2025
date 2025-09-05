@@ -3,6 +3,7 @@ package cli
 import (
 	"bdgp2025/src/db_interface"
 	"bdgp2025/src/utils"
+	"bdgp2025/src/utils/histogram"
 	"flag"
 	"fmt"
 	"log"
@@ -19,6 +20,7 @@ func Main() {
 	importCSVLong := flag.String("import-csv", "", "Import data from CSV file")
 	deviceId := flag.String("device-id", "root.example.exampledev", "Device ID for IoTDB")
 	statisticCalc := flag.Bool("stat", false, "Calculate statistics (shorthand)")
+	statisticGraph := flag.Bool("graph", false, "Generate statistic graph (shorthand)")
 
 	flag.Parse()
 
@@ -61,6 +63,9 @@ func Main() {
 	} else if *statisticCalc {
 		// Execute statistic calculation
 		handleStatisticCalc(session, *deviceId, timeout)
+	} else if *statisticGraph {
+		// Execute statistic graph generation
+		handleStatisticGraph(session, *deviceId, timeout)
 	}
 }
 
@@ -88,4 +93,15 @@ func handleStatisticCalc(session client.Session, deviceId string, timeout int64)
 	for i := 0; i < t.NumField(); i++ {
 		fmt.Printf("%s: %v\n", t.Field(i).Name, v.Field(i).Interface())
 	}
+}
+func handleStatisticGraph(session client.Session, deviceId string, timeout int64) {
+	hist := histogram.NewStreamingHistogram(histogram.DefaultConfig())
+	db_interface.TraverseWithProcess(session, deviceId, timeout, hist.AddValue)
+	result := hist.Finalize()
+
+	// result.SaveAsJSON("output.json")
+	result.SaveAsSVG("output.svg")
+	result.SaveAsPNG("output.png")
+	// result.GenerateAllFormats()
+
 }
