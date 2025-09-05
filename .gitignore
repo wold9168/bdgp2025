@@ -6,6 +6,12 @@ cli
 server
 src/session_example/session_example
 
+# statistic graph result
+*.html
+*.json
+*.svg
+*.png
+
 # Rule from github/gitignore
 # Go + Cpp + Java
 *.a

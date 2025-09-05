@@ -9,6 +9,7 @@ import (
 	"log"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/apache/iotdb-client-go/v2/client"
@@ -95,13 +96,17 @@ func handleStatisticCalc(session client.Session, deviceId string, timeout int64)
 	}
 }
 func handleStatisticGraph(session client.Session, deviceId string, timeout int64) {
-	hist := histogram.NewStreamingHistogram(histogram.DefaultConfig())
-	db_interface.TraverseWithProcess(session, deviceId, timeout, hist.AddValue)
-	result := hist.Finalize()
-
-	// result.SaveAsJSON("output.json")
-	result.SaveAsSVG("output.svg")
-	result.SaveAsPNG("output.png")
-	// result.GenerateAllFormats()
-
+	columnNames, _, errMetadata := db_interface.FetchMetadata(session, deviceId, timeout)
+	if errMetadata != nil {
+		log.Fatal(errMetadata)
+		return
+	}
+	columnLength := int32(len(columnNames))
+	hists := make([]*histogram.StreamingHistogram, columnLength)
+	for i := 1; i < len(hists); i++ {
+		hists[i] = histogram.NewStreamingHistogram(histogram.DefaultConfig())
+		db_interface.TraverseWithProcess(session, deviceId, timeout, hists[i].AddValue, int32(i))
+		result := hists[i].Finalize()
+		result.SaveAsHTML("output" + strconv.Itoa(i) + " " + columnNames[i] + ".html")
+	}
 }
