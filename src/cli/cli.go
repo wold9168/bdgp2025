@@ -22,6 +22,7 @@ func Main() {
 	deviceId := flag.String("device-id", "root.example.exampledev", "Device ID for IoTDB")
 	statisticCalc := flag.Bool("stat", false, "Calculate statistics (shorthand)")
 	statisticGraph := flag.Bool("graph", false, "Generate statistic graph (shorthand)")
+	correlationCalc := flag.Bool("corr", false, "Calculate correlation coefficients (shorthand)")
 
 	flag.Parse()
 
@@ -67,6 +68,9 @@ func Main() {
 	} else if *statisticGraph {
 		// Execute statistic graph generation
 		handleStatisticGraph(session, *deviceId, timeout)
+	} else if *correlationCalc {
+		// Execute correlation calculation
+		handleCorrelationCalc(session, *deviceId, timeout)
 	}
 }
 
@@ -95,6 +99,34 @@ func handleStatisticCalc(session client.Session, deviceId string, timeout int64)
 		fmt.Printf("%s: %v\n", t.Field(i).Name, v.Field(i).Interface())
 	}
 }
+
+func handleCorrelationCalc(session client.Session, deviceId string, timeout int64) {
+	result, err := db_interface.GetCorrelationResult(session, deviceId, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	columnNames, _, err := db_interface.FetchMetadata(session, deviceId, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print header row
+	fmt.Print("\t")
+	for i := 1; i < len(columnNames); i++ {
+		fmt.Printf("%s\t", columnNames[i])
+	}
+	fmt.Println()
+
+	// Print correlation matrix
+	for i := 0; i < len(result.PearsonCorrelation); i++ {
+		fmt.Printf("%s\t", columnNames[i+1])
+		for j := 0; j < len(result.PearsonCorrelation[i]); j++ {
+			fmt.Printf("%.4f\t", result.PearsonCorrelation[i][j])
+		}
+		fmt.Println()
+	}
+}
+
 func handleStatisticGraph(session client.Session, deviceId string, timeout int64) {
 	columnNames, _, errMetadata := db_interface.FetchMetadata(session, deviceId, timeout)
 	if errMetadata != nil {
@@ -109,4 +141,5 @@ func handleStatisticGraph(session client.Session, deviceId string, timeout int64
 		result := hists[i].Finalize()
 		result.SaveAsHTML("output" + strconv.Itoa(i) + " " + columnNames[i] + ".html")
 	}
+
 }
