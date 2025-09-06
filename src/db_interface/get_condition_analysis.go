@@ -188,11 +188,16 @@ func GetConditionAnalysisResult(session client.Session, deviceId string, timeout
 				finalStats.StdDev[i] = math.Sqrt(finalStats.Variance[i])
 
 				// Calculate skewness and kurtosis
-				if stats.Cnt > 1 && finalStats.Variance[i] != 0 {
-					variance := finalStats.Variance[i]
-					stdDev := finalStats.StdDev[i]
-					finalStats.Skewness[i] = (math.Sqrt(float64(stats.Cnt)) * stats.M3[i]) / (math.Pow(stdDev, 3) * float64(stats.Cnt-1))
-					finalStats.Kurtosis[i] = (float64(stats.Cnt)*stats.M4[i])/(variance*variance*float64(stats.Cnt-1)) - 3.0
+				if stats.Cnt > 2 && finalStats.Variance[i] != 0 {
+					// Skewness: sqrt(n) * M3 / (M2^(3/2))
+					// Kurtosis: n * M4 / M2^2 - 3
+					n := float64(stats.Cnt)
+					m2 := stats.M2[i]
+					m3 := stats.M3[i]
+					m4 := stats.M4[i]
+
+					finalStats.Skewness[i] = (math.Sqrt(n) * m3) / math.Pow(m2, 1.5)
+					finalStats.Kurtosis[i] = (n*m4)/(m2*m2) - 3.0
 				} else {
 					finalStats.Skewness[i] = 0
 					finalStats.Kurtosis[i] = 0
