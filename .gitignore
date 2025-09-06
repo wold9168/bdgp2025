@@ -6,6 +6,15 @@ cli
 server
 src/session_example/session_example
 
+# frontend
+**/.py[cod]
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.pdm-python
+
+
 # statistic graph result
 *.html
 *.json

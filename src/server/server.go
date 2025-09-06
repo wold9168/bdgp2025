@@ -159,7 +159,7 @@ func Main() {
 		duration := time.Since(startTime)
 		log.Printf("Graph API: Successfully completed chart generation, Device ID: %s, Duration: %v\n", deviceId, duration)
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprint(w, result)
+		fmt.Fprint(w, "Graphs generated successfully. Access them at: /static/graphs/\n"+result)
 	})
 
 	// 注册条件分析端点
