@@ -23,6 +23,7 @@ func Main() {
 	statisticCalc := flag.Bool("stat", false, "Calculate statistics (shorthand)")
 	statisticGraph := flag.Bool("graph", false, "Generate statistic graph (shorthand)")
 	correlationCalc := flag.Bool("corr", false, "Calculate correlation coefficients (shorthand)")
+	conditionAnalysis := flag.Bool("condition", false, "Analyze engine conditions (shorthand)")
 
 	flag.Parse()
 
@@ -71,6 +72,9 @@ func Main() {
 	} else if *correlationCalc {
 		// Execute correlation calculation
 		handleCorrelationCalc(session, *deviceId, timeout)
+	} else if *conditionAnalysis {
+		// Execute condition analysis
+		handleConditionAnalysis(session, *deviceId, timeout)
 	}
 }
 
@@ -142,4 +146,46 @@ func handleStatisticGraph(session client.Session, deviceId string, timeout int64
 		result.SaveAsHTML("output" + strconv.Itoa(i) + " " + columnNames[i] + ".html")
 	}
 
+}
+
+func handleConditionAnalysis(session client.Session, deviceId string, timeout int64) {
+	result, err := db_interface.GetConditionAnalysisResult(session, deviceId, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print header
+	fmt.Printf("Engine Condition Analysis\n")
+	fmt.Printf("========================\n\n")
+
+	// For each condition value, print statistics
+	for _, conditionValue := range result.ConditionValues {
+		stats := result.Statistics[conditionValue]
+		fmt.Printf("Condition %d:\n", conditionValue)
+		fmt.Printf("  Count: %d\n", stats.Cnt)
+
+		// Get column names for meaningful output
+		columnNames, _, err := db_interface.FetchMetadata(session, deviceId, timeout)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("  Column Statistics:\n")
+		for i := 1; i < len(columnNames); i++ {
+			fmt.Printf("    %s:\n", columnNames[i])
+			fmt.Printf("      Sum: %.2f\n", stats.Sum[i])
+			fmt.Printf("      Mean: %.2f\n", stats.Mean[i])
+			fmt.Printf("      Variance: %.2f\n", stats.Variance[i])
+			fmt.Printf("      StdDev: %.2f\n", stats.StdDev[i])
+			fmt.Printf("      Min: %.2f\n", stats.Min[i])
+			fmt.Printf("      Max: %.2f\n", stats.Max[i])
+			fmt.Printf("      Median: %.2f\n", stats.Median[i])
+			fmt.Printf("      Q1: %.2f\n", stats.Q1[i])
+			fmt.Printf("      Q3: %.2f\n", stats.Q3[i])
+			fmt.Printf("      IQR: %.2f\n", stats.IQR[i])
+			fmt.Printf("      Skewness: %.2f\n", stats.Skewness[i])
+			fmt.Printf("      Kurtosis: %.2f\n", stats.Kurtosis[i])
+		}
+		fmt.Printf("\n")
+	}
 }
