@@ -143,7 +143,7 @@ func GetConditionAnalysisResult(session client.Session, deviceId string, timeout
 				deltaN2 := deltaN * deltaN
 				term1 := delta * deltaN * float64(stats.Cnt-1)
 				// Use extended Welford Algorithm to calculate M2, M3 and M4
-				// 使用扩展的 Welford 算法来计算高阶中心距
+				// 使用扩展的 Welford 算法来计算高阶中心矩
 				stats.Mean[i] += deltaN
 				stats.M4[i] += term1*deltaN2*float64(stats.Cnt*stats.Cnt-3*stats.Cnt+3) +
 					6*deltaN2*stats.M2[i] - 4*deltaN*stats.M3[i]
